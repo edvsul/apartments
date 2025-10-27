@@ -75,6 +75,26 @@ The project includes an example that scrapes the Goodview Serviced Apartment in 
 python example_usage.py
 ```
 
+### Multi-Country Price Comparison
+
+For advanced users with NordVPN, you can compare hotel prices across different countries:
+
+```bash
+./run_multi_country_scraper.sh
+```
+
+**Requirements for Multi-Country Scraping:**
+- NordVPN subscription and CLI installed
+- Must be logged into NordVPN (`nordvpn login`)
+- Stable internet connection
+
+This will:
+- Connect to multiple countries via NordVPN
+- Scrape the same hotel from each location
+- Compare pricing differences by region
+- Generate CSV and JSON reports
+- Take screenshots for verification
+
 ## Sample Output
 
 ```json

@@ -46,3 +46,8 @@ Thumbs.db
 
 # Chrome Driver
 chromedriver*
+
+# Multi-country scraper outputs
+hotel_prices/
+screenshots/
+temp_chrome_sessions/
