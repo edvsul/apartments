@@ -88,8 +88,8 @@ ulimit -n 4096  # Increase file descriptor limit
 
 # Run the EC2-optimized scraper
 echo "🚀 Starting EC2 hotel scraper..."
-echo "⚠️  This will test hotel prices across 5 countries (EC2 optimized)"
-echo "⏱️  Estimated time: 10-15 minutes"
+echo "🧪 This will test hotel prices across 2 countries (testing mode)"
+echo "⏱️  Estimated time: 5-8 minutes"
 echo "📊 Logs will be saved to hotel_scraper.log"
 echo ""
 

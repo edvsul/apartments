@@ -550,9 +550,9 @@ def main():
     # Disconnect from VPN first
     disconnect_nordvpn()
     
-    # Test first 5 countries for EC2 (to manage resources)
-    test_countries = countries[:5]
-    logger.info(f"Testing {len(test_countries)} countries on EC2: {test_countries}")
+    # Test first 2 countries for testing purposes
+    test_countries = countries[:2]
+    logger.info(f"Testing {len(test_countries)} countries for quick testing: {test_countries}")
     
     for i, country in enumerate(test_countries, 1):
         logger.info(f"Processing country {i}/{len(test_countries)}: {country}")
