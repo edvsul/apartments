@@ -38,27 +38,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def check_ec2_environment():
-    """Check if running on EC2 and log system info."""
-    try:
-        # Check if we're on EC2
-        result = subprocess.run(['curl', '-s', '--max-time', '3', 'http://169.254.169.254/latest/meta-data/instance-id'],
-                              capture_output=True, text=True)
-        if result.returncode == 0:
-            instance_id = result.stdout.strip()
-            logger.info(f"Running on EC2 instance: {instance_id}")
-
-            # Get instance type
-            result = subprocess.run(['curl', '-s', '--max-time', '3', 'http://169.254.169.254/latest/meta-data/instance-type'],
-                                  capture_output=True, text=True)
-            if result.returncode == 0:
-                instance_type = result.stdout.strip()
-                logger.info(f"EC2 instance type: {instance_type}")
-        else:
-            logger.info("Not running on EC2")
-    except:
-        logger.info("Could not determine EC2 status")
-
 def get_nordvpn_countries():
     """Get list of available NordVPN countries - EC2 optimized."""
     try:
@@ -481,7 +460,7 @@ def scrape_hotel_for_country(hotel_url, country):
         # Scroll to pricing section and take screenshot
         os.makedirs("screenshots", exist_ok=True)
         screenshot_file = f"screenshots/hotel_{country}_{int(time.time())}.png"
-        
+
         try:
             # Try to find and scroll to the availability/pricing section
             pricing_selectors = [
@@ -493,7 +472,7 @@ def scrape_hotel_for_country(hotel_url, country):
                 ".bui-price-display",  # Price display
                 ".hprt-occupancy-occupancy-info"  # Occupancy info
             ]
-            
+
             pricing_element = None
             for selector in pricing_selectors:
                 try:
@@ -503,7 +482,7 @@ def scrape_hotel_for_country(hotel_url, country):
                         break
                 except:
                     continue
-            
+
             if pricing_element:
                 # Scroll to the pricing section
                 driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", pricing_element)
@@ -514,11 +493,11 @@ def scrape_hotel_for_country(hotel_url, country):
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
                 time.sleep(2)
                 logger.info("Scrolled to middle of page as fallback")
-                
+
         except Exception as e:
             logger.warning(f"Could not scroll to pricing section: {e}")
             # Continue with screenshot anyway
-        
+
         driver.save_screenshot(screenshot_file)
         hotel_data['screenshot'] = screenshot_file
 
@@ -564,9 +543,6 @@ def main():
     """Main function optimized for EC2."""
     logger.info("Starting EC2 multi-country hotel price scraper")
 
-    # Check EC2 environment
-    check_ec2_environment()
-
     # Hotel URL
     hotel_url = "https://www.booking.com/hotel/nz/goodview-serviced-apartment.html?aid=304142&label=gen173nr-10CAEoggI46AdIM1gEaD2IAQGYATO4AQfIAQzYAQPoAQH4AQGIAgGoAgG4As7u_scGwAIB0gIkYmRiODNhYmQtYTVlNy00OTljLThjZjgtNzg2OWJjMzU4ODBj2AIB4AIB&sid=161052f1d90c5a7f57b951c160f1fb7f&all_sr_blocks=218269713_273703546_0_0_0&checkin=2026-03-08&checkout=2026-03-22&dest_id=-1506909&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=2&highlighted_blocks=218269713_273703546_0_0_0&hpos=2&matching_block_id=218269713_273703546_0_0_0&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&sr_order=popularity&sr_pri_blocks=218269713_273703546_0_0_0__156889&srepoch=1761589637&srpvid=901281bb46be0113&type=total&ucfs=1&selected_currency=EUR"
 
@@ -588,12 +564,11 @@ def main():
     # Disconnect from VPN first
     disconnect_nordvpn()
 
-    # Test first 2 countries for testing purposes
-    test_countries = countries[:2]
-    logger.info(f"Testing {len(test_countries)} countries for quick testing: {test_countries}")
+    # Process all available countries
+    logger.info(f"Processing all {len(countries)} available countries: {countries}")
 
-    for i, country in enumerate(test_countries, 1):
-        logger.info(f"Processing country {i}/{len(test_countries)}: {country}")
+    for i, country in enumerate(countries, 1):
+        logger.info(f"Processing country {i}/{len(countries)}: {country}")
 
         # Connect to VPN
         if not connect_to_nordvpn_country(country):
@@ -618,7 +593,7 @@ def main():
             failed_countries.append(country)
 
         # Longer pause between countries on EC2
-        if i < len(test_countries):
+        if i < len(countries):
             time.sleep(10)
 
     # Final disconnect
