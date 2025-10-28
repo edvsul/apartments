@@ -79,7 +79,7 @@ echo "📊 Logs will be saved to hotel_scraper.log"
 echo ""
 
 # Run with timeout to prevent hanging
-timeout 1800 python multi_country_hotel_scraper_ec2.py
+timeout 1800 python -u multi_country_hotel_scraper_ec2.py > /var/log/flights_scraper_script.log
 
 EXIT_CODE=$?
 
