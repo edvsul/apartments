@@ -478,9 +478,47 @@ def scrape_hotel_for_country(hotel_url, country):
         hotel_data['url'] = hotel_url
         hotel_data['ip_address'] = current_ip
 
-        # Take screenshot
+        # Scroll to pricing section and take screenshot
         os.makedirs("screenshots", exist_ok=True)
         screenshot_file = f"screenshots/hotel_{country}_{int(time.time())}.png"
+        
+        try:
+            # Try to find and scroll to the availability/pricing section
+            pricing_selectors = [
+                "[data-testid='availability-calendar-date-picker']",  # Date picker section
+                ".hprt-table",  # Room table
+                ".hp_rt_rooms_table",  # Alternative room table
+                ".availability",  # Availability section
+                "[data-testid='property-section-prices']",  # Prices section
+                ".bui-price-display",  # Price display
+                ".hprt-occupancy-occupancy-info"  # Occupancy info
+            ]
+            
+            pricing_element = None
+            for selector in pricing_selectors:
+                try:
+                    pricing_element = driver.find_element(By.CSS_SELECTOR, selector)
+                    if pricing_element:
+                        logger.info(f"Found pricing section with selector: {selector}")
+                        break
+                except:
+                    continue
+            
+            if pricing_element:
+                # Scroll to the pricing section
+                driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", pricing_element)
+                time.sleep(3)  # Wait for scroll to complete
+                logger.info("Scrolled to pricing section")
+            else:
+                # Fallback: scroll down to middle of page
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
+                time.sleep(2)
+                logger.info("Scrolled to middle of page as fallback")
+                
+        except Exception as e:
+            logger.warning(f"Could not scroll to pricing section: {e}")
+            # Continue with screenshot anyway
+        
         driver.save_screenshot(screenshot_file)
         hotel_data['screenshot'] = screenshot_file
 
