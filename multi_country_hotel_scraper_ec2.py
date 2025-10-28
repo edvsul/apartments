@@ -459,7 +459,9 @@ def scrape_hotel_for_country(hotel_url, country):
 
         # Scroll to pricing section and take screenshot
         os.makedirs("screenshots", exist_ok=True)
-        screenshot_file = f"screenshots/hotel_{country}_{int(time.time())}.png"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds
+        screenshot_file = f"screenshots/hotel_{country}_{timestamp}.png"
+        logger.info(f"Taking screenshot: {screenshot_file}")
 
         try:
             # Try to find and scroll to the availability/pricing section
@@ -500,6 +502,7 @@ def scrape_hotel_for_country(hotel_url, country):
 
         driver.save_screenshot(screenshot_file)
         hotel_data['screenshot'] = screenshot_file
+        logger.info(f"Screenshot saved: {screenshot_file}")
 
         logger.info(f"Successfully scraped hotel data for {country}: {hotel_data.get('hotel_name', 'Unknown')} - {hotel_data.get('raw_price', 'No price')}")
 
