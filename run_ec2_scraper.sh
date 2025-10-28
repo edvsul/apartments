@@ -5,21 +5,6 @@
 echo "🚀 EC2 Multi-Country Hotel Price Scraper"
 echo "========================================"
 
-# Check if running on EC2
-if curl -s --max-time 3 http://169.254.169.254/latest/meta-data/instance-id > /dev/null 2>&1; then
-    INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-    INSTANCE_TYPE=$(curl -s http://169.254.169.254/latest/meta-data/instance-type)
-    echo "✅ Running on EC2 instance: $INSTANCE_ID ($INSTANCE_TYPE)"
-else
-    echo "⚠️  Not running on EC2, but continuing..."
-fi
-
-# Check system resources
-echo "📊 System Resources:"
-echo "   Memory: $(free -h | grep '^Mem:' | awk '{print $2}') total, $(free -h | grep '^Mem:' | awk '{print $7}') available"
-echo "   Disk: $(df -h / | tail -1 | awk '{print $4}') available"
-echo "   CPU: $(nproc) cores"
-
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
     echo "❌ Virtual environment not found. Please run ./ec2_setup.sh first."
