@@ -73,18 +73,16 @@ ulimit -n 4096  # Increase file descriptor limit
 
 # Run the EC2-optimized scraper
 echo "🚀 Starting EC2 hotel scraper..."
-echo "⏱️  Estimated time: 5-8 minutes"
+echo "⏱️  Estimated time: 2-4 hours for all countries"
 echo "📊 Logs will be saved to hotel_scraper.log"
 echo ""
 
-# Run with timeout to prevent hanging
-timeout 1800 python -u multi_country_hotel_scraper_ec2.py > /var/log/flights_scraper_script.log
+# Run without timeout to process all countries
+python -u multi_country_hotel_scraper_ec2.py > /var/log/hotel_scraper_script.log
 
 EXIT_CODE=$?
 
-if [ $EXIT_CODE -eq 124 ]; then
-    echo "⚠️  Scraper timed out after 30 minutes"
-elif [ $EXIT_CODE -eq 0 ]; then
+if [ $EXIT_CODE -eq 0 ]; then
     echo "✅ Scraper completed successfully"
 else
     echo "❌ Scraper exited with error code: $EXIT_CODE"
