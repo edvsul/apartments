@@ -26,6 +26,8 @@ import tempfile
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime
 import logging
+import boto3
+from botocore.exceptions import ClientError
 
 # Set up logging for EC2
 logging.basicConfig(
@@ -37,6 +39,36 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+def upload_screenshot_to_s3(local_file_path, bucket_name="apartmentscreenshots"):
+    """Upload a screenshot file to S3 bucket"""
+    try:
+        # Create S3 client
+        s3_client = boto3.client('s3')
+        
+        # Extract filename from path
+        filename = os.path.basename(local_file_path)
+        
+        # Create S3 key with timestamp prefix for organization
+        timestamp_prefix = datetime.now().strftime("%Y/%m/%d")
+        s3_key = f"hotel-scraper/{timestamp_prefix}/{filename}"
+        
+        # Upload file
+        logger.info(f"Uploading {filename} to S3 bucket {bucket_name}")
+        s3_client.upload_file(local_file_path, bucket_name, s3_key)
+        
+        # Generate S3 URL
+        s3_url = f"s3://{bucket_name}/{s3_key}"
+        logger.info(f"Screenshot uploaded successfully: {s3_url}")
+        
+        return s3_url
+        
+    except ClientError as e:
+        logger.error(f"Failed to upload screenshot to S3: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error uploading to S3: {e}")
+        return None
 
 def get_nordvpn_countries():
     """Get list of available NordVPN countries - EC2 optimized."""
@@ -502,6 +534,7 @@ def scrape_hotel_for_country(hotel_url, country):
 
         driver.save_screenshot(screenshot_file)
         hotel_data['screenshot'] = screenshot_file
+        hotel_data['screenshot_s3_url'] = None  # Will be set after VPN disconnect
         logger.info(f"Screenshot saved: {screenshot_file}")
 
         logger.info(f"Successfully scraped hotel data for {country}: {hotel_data.get('hotel_name', 'Unknown')} - {hotel_data.get('raw_price', 'No price')}")
@@ -604,6 +637,13 @@ def main():
     # Final disconnect
     disconnect_nordvpn()
 
+    # Upload all screenshots to S3 after VPN disconnect
+    logger.info("Uploading screenshots to S3...")
+    for data in all_hotel_data:
+        if data.get('screenshot') and os.path.exists(data['screenshot']):
+            s3_url = upload_screenshot_to_s3(data['screenshot'])
+            data['screenshot_s3_url'] = s3_url
+
     # Save results
     if all_hotel_data:
         df = pd.DataFrame(all_hotel_data)
@@ -629,6 +669,13 @@ def main():
 
         print(f"\n✅ Successful: {len(successful_countries)}")
         print(f"❌ Failed: {len(failed_countries)}")
+        
+        # Count S3 uploads
+        s3_uploads = sum(1 for data in all_hotel_data if data.get('screenshot_s3_url'))
+        print(f"📸 Screenshots uploaded to S3: {s3_uploads}/{len(all_hotel_data)}")
+        
+        if s3_uploads > 0:
+            print(f"🗂️  S3 bucket: apartmentscreenshots/hotel-scraper/")
 
     else:
         logger.warning("No data collected")
