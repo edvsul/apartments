@@ -64,6 +64,8 @@ mkdir -p hotel_prices screenshots temp_chrome_sessions
 export DISPLAY=:99
 export CHROME_BIN=/usr/bin/google-chrome
 export CHROMEDRIVER_PATH=/usr/bin/chromedriver
+export PYTHONUNBUFFERED=1  # Ensure Python output is unbuffered
+export PYTHONIOENCODING=utf-8  # Ensure proper encoding for logs
 
 # Clean up any existing Chrome processes
 pkill -f chrome > /dev/null 2>&1 || true
@@ -78,9 +80,11 @@ echo "📊 Logs will be saved to hotel_scraper.log"
 echo ""
 
 # Run without timeout to process all countries
-python -u multi_country_hotel_scraper_ec2.py > /var/log/hotel_scraper_script.log
+# Use tee to send output to both CloudWatch (stdout) and log file
+python multi_country_hotel_scraper_ec2.py 2>&1 | tee /var/log/hotel_scraper_script.log
 
-EXIT_CODE=$?
+# Capture the exit code from the Python script (not tee)
+EXIT_CODE=${PIPESTATUS[0]}
 
 if [ $EXIT_CODE -eq 0 ]; then
     echo "✅ Scraper completed successfully"

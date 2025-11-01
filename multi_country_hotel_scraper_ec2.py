@@ -558,7 +558,9 @@ def main():
         logger.error("No NordVPN countries available")
         return
 
-    logger.info(f"Found {len(countries)} countries to test")
+    # TESTING: Limit to first 2 countries only
+    countries = countries[:2]
+    logger.info(f"Testing with {len(countries)} countries: {', '.join(countries)}")
 
     all_hotel_data = []
     successful_countries = []
@@ -567,8 +569,8 @@ def main():
     # Disconnect from VPN first
     disconnect_nordvpn()
 
-    # Process all available countries
-    logger.info(f"Processing all {len(countries)} available countries: {countries}")
+    # Process countries
+    logger.info(f"Processing {len(countries)} countries: {countries}")
 
     for i, country in enumerate(countries, 1):
         logger.info(f"Processing country {i}/{len(countries)}: {country}")
