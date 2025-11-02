@@ -28,6 +28,7 @@ from datetime import datetime
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import pymysql
 
 # Set up logging for EC2
 logging.basicConfig(
@@ -39,6 +40,142 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# RDS Configuration
+RDS_HOST = "scraper.clyuc4e6ci6m.eu-west-1.rds.amazonaws.com"
+RDS_PORT = 3306
+RDS_DB_NAME = "hotel_scraper"
+RDS_USERNAME = "iam_db_user"
+RDS_REGION = "eu-west-1"
+
+def get_rds_iam_token():
+    """Generate an IAM authentication token for RDS"""
+    try:
+        rds_client = boto3.client('rds', region_name=RDS_REGION)
+        token = rds_client.generate_db_auth_token(
+            DBHostname=RDS_HOST,
+            Port=RDS_PORT,
+            DBUsername=RDS_USERNAME,
+            Region=RDS_REGION
+        )
+        return token
+    except Exception as e:
+        logger.error(f"Error generating RDS IAM token: {e}")
+        return None
+
+def get_rds_connection():
+    """Get RDS connection using IAM authentication"""
+    try:
+        token = get_rds_iam_token()
+        if not token:
+            logger.error("Failed to generate IAM token")
+            return None
+
+        ssl_ca = '/etc/pki/tls/certs/ca-bundle.crt'  # Amazon Linux 2/2023 CA bundle path
+
+        connection = pymysql.connect(
+            host=RDS_HOST,
+            user=RDS_USERNAME,
+            password=token,
+            database=RDS_DB_NAME,
+            port=RDS_PORT,
+            ssl_ca=ssl_ca,
+            ssl_verify_cert=True,
+            ssl_verify_identity=True,
+            connect_timeout=10
+        )
+        logger.info("Successfully connected to RDS using IAM authentication")
+        return connection
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL error connecting to RDS: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Error connecting to RDS: {e}")
+        return None
+
+def create_hotel_prices_table():
+    """Create hotel_prices table if it doesn't exist"""
+    try:
+        connection = get_rds_connection()
+        if not connection:
+            return False
+
+        with connection.cursor() as cursor:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS hotel_prices (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                country VARCHAR(100),
+                hotel_name VARCHAR(500),
+                address TEXT,
+                rating VARCHAR(50),
+                raw_price VARCHAR(100),
+                cleaned_price DECIMAL(10,2),
+                checkin_date VARCHAR(50),
+                checkout_date VARCHAR(50),
+                nights VARCHAR(50),
+                scraped_at TIMESTAMP,
+                url TEXT,
+                ip_address VARCHAR(50),
+                screenshot_path VARCHAR(500),
+                screenshot_s3_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_country (country),
+                INDEX idx_scraped_at (scraped_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            """
+            cursor.execute(create_table_query)
+            connection.commit()
+            logger.info("Hotel prices table created or already exists")
+
+        connection.close()
+        return True
+    except Exception as e:
+        logger.error(f"Error creating hotel_prices table: {e}")
+        return False
+
+def insert_hotel_data_to_rds(hotel_data):
+    """Insert hotel data into RDS"""
+    try:
+        connection = get_rds_connection()
+        if not connection:
+            logger.error("Failed to get RDS connection for insert")
+            return False
+
+        with connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO hotel_prices
+            (country, hotel_name, address, rating, raw_price, cleaned_price,
+             checkin_date, checkout_date, nights, scraped_at, url, ip_address,
+             screenshot_path, screenshot_s3_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+
+            values = (
+                hotel_data.get('country'),
+                hotel_data.get('hotel_name'),
+                hotel_data.get('address'),
+                hotel_data.get('rating'),
+                hotel_data.get('raw_price'),
+                hotel_data.get('cleaned_price'),
+                hotel_data.get('checkin_date'),
+                hotel_data.get('checkout_date'),
+                hotel_data.get('nights'),
+                hotel_data.get('scraped_at'),
+                hotel_data.get('url'),
+                hotel_data.get('ip_address'),
+                hotel_data.get('screenshot'),
+                hotel_data.get('screenshot_s3_url')
+            )
+
+            cursor.execute(insert_query, values)
+            connection.commit()
+            logger.info(f"Successfully inserted hotel data for {hotel_data.get('country')} into RDS")
+
+        connection.close()
+        return True
+    except Exception as e:
+        logger.error(f"Error inserting hotel data to RDS: {e}")
+        return False
 
 def upload_screenshot_to_s3(local_file_path, bucket_name="apartmentscreenshots"):
     """Upload a screenshot file to S3 bucket"""
@@ -585,6 +722,13 @@ def main():
     print("🚀 EC2 Multi-Country Hotel Price Scraper")
     print("========================================")
 
+    # Initialize RDS table
+    logger.info("Initializing RDS database table...")
+    if create_hotel_prices_table():
+        logger.info("✅ RDS table ready")
+    else:
+        logger.warning("⚠️  Could not initialize RDS table - data will only be saved to CSV/JSON")
+
     # Get NordVPN countries
     countries = get_nordvpn_countries()
     if not countries:
@@ -644,6 +788,16 @@ def main():
             s3_url = upload_screenshot_to_s3(data['screenshot'])
             data['screenshot_s3_url'] = s3_url
 
+    # Insert data into RDS
+    logger.info("Inserting hotel data into RDS...")
+    rds_inserts_success = 0
+    rds_inserts_failed = 0
+    for data in all_hotel_data:
+        if insert_hotel_data_to_rds(data):
+            rds_inserts_success += 1
+        else:
+            rds_inserts_failed += 1
+
     # Save results
     if all_hotel_data:
         df = pd.DataFrame(all_hotel_data)
@@ -669,13 +823,18 @@ def main():
 
         print(f"\n✅ Successful: {len(successful_countries)}")
         print(f"❌ Failed: {len(failed_countries)}")
-        
+
         # Count S3 uploads
         s3_uploads = sum(1 for data in all_hotel_data if data.get('screenshot_s3_url'))
         print(f"📸 Screenshots uploaded to S3: {s3_uploads}/{len(all_hotel_data)}")
-        
+
         if s3_uploads > 0:
             print(f"🗂️  S3 bucket: apartmentscreenshots/hotel-scraper/")
+
+        # RDS insert statistics
+        print(f"💾 RDS inserts: {rds_inserts_success} successful, {rds_inserts_failed} failed")
+        if rds_inserts_success > 0:
+            print(f"🔗 Database: {RDS_HOST}/{RDS_DB_NAME}")
 
     else:
         logger.warning("No data collected")
