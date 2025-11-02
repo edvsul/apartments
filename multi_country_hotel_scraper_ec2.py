@@ -182,24 +182,24 @@ def upload_screenshot_to_s3(local_file_path, bucket_name="apartmentscreenshots")
     try:
         # Create S3 client
         s3_client = boto3.client('s3')
-        
+
         # Extract filename from path
         filename = os.path.basename(local_file_path)
-        
+
         # Create S3 key with timestamp prefix for organization
         timestamp_prefix = datetime.now().strftime("%Y/%m/%d")
         s3_key = f"hotel-scraper/{timestamp_prefix}/{filename}"
-        
+
         # Upload file
         logger.info(f"Uploading {filename} to S3 bucket {bucket_name}")
         s3_client.upload_file(local_file_path, bucket_name, s3_key)
-        
+
         # Generate S3 URL
         s3_url = f"s3://{bucket_name}/{s3_key}"
         logger.info(f"Screenshot uploaded successfully: {s3_url}")
-        
+
         return s3_url
-        
+
     except ClientError as e:
         logger.error(f"Failed to upload screenshot to S3: {e}")
         return None
