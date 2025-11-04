@@ -735,9 +735,9 @@ def main():
         logger.error("No NordVPN countries available")
         return
 
-    # TESTING: Limit to first 2 countries only
-    countries = countries[:2]
-    logger.info(f"Testing with {len(countries)} countries: {', '.join(countries)}")
+    # Run on all countries
+    countries = countries
+    logger.info(f"Processing {len(countries)} countries: {', '.join(countries)}")
 
     all_hotel_data = []
     successful_countries = []
