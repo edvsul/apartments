@@ -71,7 +71,7 @@ def get_rds_connection():
             logger.error("Failed to generate IAM token")
             return None
 
-        ssl_ca = '/home/ssm-user/rds-ca-2019-root.pem'  # RDS CA certificate
+        ssl_ca = '/home/ssm-user/global-bundle.pem'  # RDS CA certificate
 
         connection = pymysql.connect(
             host=RDS_HOST,
