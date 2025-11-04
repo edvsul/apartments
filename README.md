@@ -18,7 +18,8 @@ This project is designed to run on AWS infrastructure with the following compone
 
 ### Architecture Diagram
 
-![AWS Architecture Diagram](https://github.com/user-attachments/assets/your-image-id-here)
+<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/c5a6ca09-629d-42cd-be5f-97800c843db4" />
+
 
 **Architecture Overview:**
 - **VPC (10.0.0.0/16)** with public and private subnets in Availability Zone A
