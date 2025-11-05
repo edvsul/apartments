@@ -101,7 +101,6 @@ nordvpn disconnect
 ├── multi_country_hotel_scraper_ec2.py  # EC2-optimized scraper
 ├── ec2_setup.sh                        # EC2 setup script
 ├── run_ec2_scraper.sh                  # EC2 run script
-├── hotel_scraper.log                   # Execution logs
 ├── hotel_prices/                       # CSV/JSON results
 ├── screenshots/                        # Visual evidence
 └── venv/                              # Python virtual environment
@@ -177,33 +176,6 @@ grep -i error hotel_scraper.log
 grep -i "successfully scraped" hotel_scraper.log
 ```
 
-## 🔒 Security Considerations
-
-### EC2 Security Group
-Ensure your security group allows:
-- **SSH (22)**: For access
-- **HTTPS (443)**: For web scraping
-- **HTTP (80)**: For some services
-
-### NordVPN Security
-- Store credentials securely
-- Use IAM roles instead of hardcoded credentials
-- Consider using AWS Secrets Manager for NordVPN credentials
-
-## 📈 Monitoring and Scaling
-
-### CloudWatch Metrics
-Monitor:
-- CPU utilization
-- Memory usage
-- Network I/O
-- Disk space
-
-### Auto-scaling Considerations
-- Use spot instances for cost savings
-- Consider Lambda for scheduled runs
-- Use S3 for result storage
-
 ## 💰 Cost Optimization
 
 ### Estimated Costs (us-east-1)
@@ -216,20 +188,6 @@ Monitor:
 2. Stop instance when not in use
 3. Use smaller instance for testing
 4. Store results in S3, not EBS
-
-## 🔄 Automation
-
-### Cron Job Example
-```bash
-# Run daily at 2 AM UTC
-0 2 * * * /home/ec2-user/apartments/run_ec2_scraper.sh >> /home/ec2-user/scraper_cron.log 2>&1
-```
-
-### Lambda Integration
-Consider using AWS Lambda for:
-- Scheduled execution
-- Result processing
-- Notification sending
 
 ## 📞 Support
 
