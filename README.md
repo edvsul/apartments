@@ -77,17 +77,6 @@ deactivate
 
 ## Usage
 
-### Basic Usage
-
-```python
-from hotel_scraper import BookingHotelScraper
-
-# Create scraper instance
-with BookingHotelScraper(headless=True) as scraper:
-    result = scraper.scrape_hotel_price("https://www.booking.com/hotel/...")
-    print(result)
-```
-
 ### Run the Example
 
 The project includes an example that scrapes the Goodview Serviced Apartment in New Zealand:
@@ -98,10 +87,12 @@ python example_usage.py
 
 ### Multi-Country Price Comparison
 
-For advanced users with NordVPN, you can compare hotel prices across different countries:
+Running it with NordVPN, you can compare hotel prices across different countries:
 
 ```bash
-./run_multi_country_scraper.sh
+./ec2_quick_setup.sh
+source venv/bin/activate
+./multi_country_hotel_scraper_ec2.py
 ```
 
 **Requirements for Multi-Country Scraping:**
