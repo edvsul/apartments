@@ -12,6 +12,27 @@ A Python project for scraping hotel prices from Booking.com. This scraper can ex
 - 📝 Comprehensive logging
 - 🛡️ Error handling and retry logic
 
+## AWS Architecture
+
+This project is designed to run on AWS infrastructure with the following components:
+
+### Architecture Diagram
+
+<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/c5a6ca09-629d-42cd-be5f-97800c843db4" />
+
+
+**Architecture Overview:**
+- **VPC (10.0.0.0/16)** with public and private subnets in Availability Zone A
+- **Public Subnet (10.0.1.0/24)** contains the EC2 instance with public IP
+- **Private Subnet (10.0.2.0/24)** contains the RDS MySQL database
+- **Amazon EC2** instance running the hotel scraper application
+- **Amazon IAM** role for EC2 instance with inline policies to connect to RDS and S3. SSM and CloudWatch included.
+- **Amazon RDS** MySQL database where records about hotel is saved
+- **Amazon S3** bucket for screenshot storage
+- **Amazon CloudWatch** for collecting logs from EC2 instance under /var/log/hotel_scraper.log
+- **Systems Manager** for secure access to EC2 instance
+- **Internet Gateway** for external connectivity to Booking.com and other services
+
 ## Installation
 
 ### Option 1: Automatic Setup (Recommended)
@@ -74,6 +95,26 @@ The project includes an example that scrapes the Goodview Serviced Apartment in 
 ```bash
 python example_usage.py
 ```
+
+### Multi-Country Price Comparison
+
+For advanced users with NordVPN, you can compare hotel prices across different countries:
+
+```bash
+./run_multi_country_scraper.sh
+```
+
+**Requirements for Multi-Country Scraping:**
+- NordVPN subscription and CLI installed
+- Must be logged into NordVPN (`nordvpn login`)
+- Stable internet connection
+
+This will:
+- Connect to multiple countries via NordVPN
+- Scrape the same hotel from each location
+- Compare pricing differences by region
+- Generate CSV and JSON reports
+- Take screenshots for verification
 
 ## Sample Output
 
