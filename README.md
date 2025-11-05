@@ -91,7 +91,11 @@ Running it with NordVPN, you can compare hotel prices across different countries
 
 ```bash
 ./ec2_quick_setup.sh
+```
+```bash
 source venv/bin/activate
+```
+```bash
 ./multi_country_hotel_scraper_ec2.py
 ```
 
