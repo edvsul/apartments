@@ -30,7 +30,7 @@ This project is designed to run on AWS infrastructure with the following compone
 - **Amazon RDS** MySQL database where records about hotel is saved
 - **Amazon S3** bucket for screenshot storage
 - **Amazon CloudWatch** for collecting logs from EC2 instance under /var/log/hotel_scraper.log
-- **Systems Manager** for secure access to EC2 instance
+- **Sessions Manager** for secure access to EC2 instance
 - **Internet Gateway** for external connectivity to Booking.com and other services
 
 ## Installation
