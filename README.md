@@ -35,16 +35,7 @@ This project is designed to run on AWS infrastructure with the following compone
 
 ## Installation
 
-### Option 1: Automatic Setup (Recommended)
-
-Run the setup script to automatically create a virtual environment and install dependencies:
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-### Option 2: Manual Setup
+### Setup
 
 1. Create a virtual environment:
 ```bash
