@@ -735,12 +735,12 @@ def main():
     print("🚀 EC2 Multi-Country Hotel Price Scraper")
     print("========================================")
 
-    # Initialize RDS table
-    logger.info("Initializing RDS database table...")
-    if create_hotel_prices_table():
-        logger.info("✅ RDS table ready")
-    else:
-        logger.warning("⚠️  Could not initialize RDS table - data will only be saved to CSV/JSON")
+    # # Initialize RDS table
+    # logger.info("Initializing RDS database table...")
+    # if create_hotel_prices_table():
+    #     logger.info("✅ RDS table ready")
+    # else:
+    #     logger.warning("⚠️  Could not initialize RDS table - data will only be saved to CSV/JSON")
 
     # Get NordVPN countries
     countries = get_nordvpn_countries()
