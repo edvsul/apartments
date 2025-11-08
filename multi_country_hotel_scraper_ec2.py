@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 def insert_hotel_data_to_dynamodb(all_hotel_data):
     """Insert hotel data into DynamoDB"""
     try:
-        dynamodb = boto3.client('dynamodb')
+        dynamodb = boto3.client('dynamodb', region_name='eu-west-1')
         table = dynamodb.Table('scraper')
 
         for data in all_hotel_data:
