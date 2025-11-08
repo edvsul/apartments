@@ -44,13 +44,14 @@ logger = logging.getLogger(__name__)
 def insert_hotel_data_to_dynamodb(all_hotel_data):
     """Insert hotel data into DynamoDB"""
     try:
-        dynamodb = boto3.client('dynamodb', region_name='eu-west-1')
+        dynamodb = boto3.resource('dynamodb', region_name='eu-west-1')
         table = dynamodb.Table('scraper')
 
         for data in all_hotel_data:
             table.put_item(Item=
             {
-                'country': data.get('country'),
+                'pk': data.get('country'),
+                'sk': data.get('scraped_at'),
                 'hotel_name': data.get('hotel_name'),
                 'address': data.get('address'),
                 'rating': data.get('rating'),
@@ -59,7 +60,6 @@ def insert_hotel_data_to_dynamodb(all_hotel_data):
                 'checkin_date': data.get('checkin_date'),
                 'checkout_date': data.get('checkout_date'),
                 'nights': data.get('nights'),
-                'scraped_at': data.get('scraped_at'),
                 'url': data.get('url'),
                 'ip_address': data.get('ip_address'),
                 'screenshot': data.get('screenshot'),
