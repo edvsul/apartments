@@ -18,7 +18,7 @@ This project is designed to run on AWS infrastructure with the following compone
 
 ### Architecture Diagram
 
-<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/e78b1e38-5311-46bd-a191-1dc6957720ef" />
+<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/22402f92-b194-4676-b37a-c2533e39b134" />
 
 
 **Architecture Overview:**
