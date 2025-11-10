@@ -143,7 +143,7 @@ def get_nordvpn_countries():
                     seen.add(country_clean.lower())
 
             logger.info(f"Found {len(unique_countries)} available countries")
-            return unique_countries[:1]
+            return unique_countries
         else:
             logger.error(f"Error getting NordVPN countries: {result.stderr}")
             return []
