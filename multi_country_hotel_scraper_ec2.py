@@ -50,20 +50,16 @@ def insert_hotel_data_to_dynamodb(all_hotel_data):
         for data in all_hotel_data:
             table.put_item(
                 Item={
-                    'pk': data.get('country'),
-                    'sk': data.get('scraped_at'),
-                    'hotel_name': data.get('hotel_name'),
-                    'address': data.get('address'),
-                    'rating': data.get('rating'),
-                    'raw_price': data.get('raw_price'),
-                    'cleaned_price': data.get('cleaned_price'),
-                    'checkin_date': data.get('checkin_date'),
-                    'checkout_date': data.get('checkout_date'),
-                    'nights': data.get('nights'),
-                    'url': data.get('url'),
-                    'ip_address': data.get('ip_address'),
-                    'screenshot': data.get('screenshot'),
-                    'screenshot_s3_url': data.get('screenshot_s3_url')
+                    'pk': {'S': data.get('country')},
+                    'sk': {'S': data.get('scraped_at')},
+                    'raw_price': {'S': data.get('raw_price')},
+                    'cleaned_price': {'S': data.get('cleaned_price')},
+                    'checkin_date': {'S': data.get('checkin_date')},
+                    'checkout_date': {'S': data.get('checkout_date')},
+                    'url': {'S': data.get('url')},
+                    'ip_address': {'S': data.get('ip_address')},
+                    'screenshot': {'S': data.get('screenshot')},
+                    'screenshot_s3_url': {'S': data.get('screenshot_s3_url')}
                 })
 
     except Exception as e:
