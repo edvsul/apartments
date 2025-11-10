@@ -25,7 +25,7 @@ This project is designed to run on AWS infrastructure with the following compone
 - **VPC (10.0.0.0/16)** with public and private subnets in Availability Zone A
 - **Public Subnet (10.0.1.0/24)** contains the EC2 instance with public IP
 - **Amazon EC2** instance running the hotel scraper application
-- **Amazon IAM** role for EC2 instance with inline policies to connect to RDS and S3. SSM and CloudWatch included.
+- **Amazon IAM** role for EC2 instance with inline policies to connect to dynamodb and S3. SSM and CloudWatch included.
 - **Amazon Dynamodb table** Table where records about hotel is saved
 - **Amazon S3** bucket for screenshot storage
 - **Amazon CloudWatch** for collecting logs from EC2 instance under /var/log/hotel_scraper.log
