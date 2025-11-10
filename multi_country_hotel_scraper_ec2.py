@@ -51,7 +51,7 @@ def insert_hotel_data_to_dynamodb(all_hotel_data):
             table.put_item(
                 Item={
                     'pk': data.get('country'),
-                    'sk': data.get('scraped_at'),
+                    'sk': data.get('scraped_at')
                 })
 
     except Exception as e:
