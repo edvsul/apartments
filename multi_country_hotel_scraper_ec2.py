@@ -48,14 +48,20 @@ def insert_hotel_data_to_dynamodb(all_hotel_data):
         table = dynamodb.Table('scraper')
 
         for data in all_hotel_data:
+            logger.info(f"DEBUG: Inserting item with country_hotel='{data.get('country')}', scraped_at='{data.get('scraped_at')}'")
             table.put_item(
                 Item={
                     'country_hotel': data.get('country'),
                     'scraped_at': data.get('scraped_at')
                 })
+            logger.info("DEBUG: Item inserted successfully")
+        
+        return True
 
     except Exception as e:
         logger.error(f"Error inserting hotel data to DynamoDB: {e}")
+        logger.error(f"DEBUG: Exception type: {type(e)}")
+        logger.error(f"DEBUG: Exception details: {str(e)}")
         return False
 
 # # RDS Configuration
