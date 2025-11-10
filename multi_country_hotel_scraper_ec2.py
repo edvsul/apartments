@@ -817,17 +817,15 @@ def main():
             s3_url = upload_screenshot_to_s3(data['screenshot'])
             data['screenshot_s3_url'] = s3_url
 
-    logger.info("Insterting hotel data into dynamodb")
-    dynamodbdb_inserts_success = 0
-    dynamodbdb_inserts_failed = 0
-    for data in all_hotel_data:
-        logger.info(f"DEBUG: Processing item of type {type(data)}: {data}")
-        if insert_hotel_data_to_dynamodb(data):
-            dynamodbdb_inserts_success += 1
+    # Insert all hotel data to DynamoDB in one call
+    logger.info("Inserting hotel data into DynamoDB")
+    if all_hotel_data:
+        if insert_hotel_data_to_dynamodb(all_hotel_data):
+            logger.info(f"💾 DynamoDB: Successfully inserted {len(all_hotel_data)} records")
         else:
-            dynamodbdb_inserts_failed += 1
-
-    logger.info(f"💾 DynamoDB inserts: {dynamodbdb_inserts_success} successful, {dynamodbdb_inserts_failed} failed")
+            logger.error(f"💾 DynamoDB: Failed to insert {len(all_hotel_data)} records")
+    else:
+        logger.info("💾 DynamoDB: No data to insert")
 
     # # Insert data into RDS
     # logger.info("Inserting hotel data into RDS...")
