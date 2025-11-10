@@ -47,11 +47,11 @@ else
 fi
 
 # Activate virtual environment
-echo "🔧 Activating virtual environment..."
+echo "Activating virtual environment..."
 source venv/bin/activate
 
 # Check Python dependencies
-echo "📦 Checking Python dependencies..."
+echo "Checking Python dependencies..."
 python -c "import pandas, selenium, requests" 2>/dev/null || {
     echo "Missing Python dependencies. Installing..."
     pip install -r requirements.txt
@@ -74,9 +74,9 @@ pkill -f chrome > /dev/null 2>&1 || true
 ulimit -n 4096  # Increase file descriptor limit
 
 # Run the EC2-optimized scraper
-echo "🚀 Starting EC2 hotel scraper..."
-echo "⏱️  Estimated time: 2-4 hours for all countries"
-echo "📊 Logs will be saved to hotel_scraper.log"
+echo "Starting EC2 hotel scraper..."
+echo "Estimated time: 2-4 hours for all countries"
+echo "Logs will be saved to hotel_scraper.log"
 echo ""
 
 # Run without timeout to process all countries
