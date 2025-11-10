@@ -52,10 +52,17 @@ def insert_hotel_data_to_dynamodb(all_hotel_data):
             table.put_item(
                 Item={
                     'country_hotel': data.get('country'),
-                    'scraped_at': data.get('scraped_at')
+                    'scraped_at': data.get('scraped_at'),
+                    'raw_price': data.get('raw_price'),
+                    'checkin_date': data.get('checkin_date'),
+                    'checkout_date': data.get('checkout_date'),
+                    'url': data.get('url'),
+                    'ip_address': data.get('ip_address'),
+                    'screenshot': data.get('screenshot'),
+                    'screenshot_s3_url': data.get('screenshot_s3_url')
                 })
             logger.info("DEBUG: Item inserted successfully")
-        
+
         return True
 
     except Exception as e:
