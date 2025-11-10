@@ -821,6 +821,7 @@ def main():
     dynamodbdb_inserts_success = 0
     dynamodbdb_inserts_failed = 0
     for data in all_hotel_data:
+        logger.info(f"DEBUG: Processing item of type {type(data)}: {data}")
         if insert_hotel_data_to_dynamodb(data):
             dynamodbdb_inserts_success += 1
         else:
