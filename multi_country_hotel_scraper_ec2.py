@@ -41,140 +41,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# RDS Configuration
-RDS_HOST = "scraper.clyuc4e6ci6m.eu-west-1.rds.amazonaws.com"
-RDS_PORT = 3306
-RDS_DB_NAME = "hotel_scraper"
-RDS_USERNAME = "iam_db_user"
-RDS_REGION = "eu-west-1"
-
-def get_rds_iam_token():
-    """Generate an IAM authentication token for RDS"""
+def insert_hotel_data_to_dynamodb(all_hotel_data):
+    """Insert hotel data into DynamoDB"""
     try:
-        rds_client = boto3.client('rds', region_name=RDS_REGION)
-        token = rds_client.generate_db_auth_token(
-            DBHostname=RDS_HOST,
-            Port=RDS_PORT,
-            DBUsername=RDS_USERNAME,
-            Region=RDS_REGION
-        )
-        return token
-    except Exception as e:
-        logger.error(f"Error generating RDS IAM token: {e}")
-        return None
+        dynamodb = boto3.resource('dynamodb', region_name='eu-west-1')
+        table = dynamodb.Table('scraper')
 
-def get_rds_connection():
-    """Get RDS connection using IAM authentication"""
-    try:
-        token = get_rds_iam_token()
-        if not token:
-            logger.error("Failed to generate IAM token")
-            return None
+        for data in all_hotel_data:
+            table.put_item(
+                Item={
+                    'country_hotel': data.get('country'),
+                    'scraped_at': data.get('scraped_at'),
+                    'raw_price': data.get('raw_price'),
+                    'checkin_date': data.get('checkin_date'),
+                    'checkout_date': data.get('checkout_date'),
+                    'url': data.get('url'),
+                    'ip_address': data.get('ip_address'),
+                    'screenshot': data.get('screenshot'),
+                    'screenshot_s3_url': data.get('screenshot_s3_url')
+                })
 
-        ssl_ca = '/home/ssm-user/global-bundle.pem'  # RDS CA certificate
-
-        connection = pymysql.connect(
-            host=RDS_HOST,
-            user=RDS_USERNAME,
-            password=token,
-            database=RDS_DB_NAME,
-            port=RDS_PORT,
-            ssl_ca=ssl_ca,
-            ssl_verify_cert=True,
-            ssl_verify_identity=True,
-            connect_timeout=10
-        )
-        logger.info("Successfully connected to RDS using IAM authentication")
-        return connection
-    except pymysql.MySQLError as e:
-        logger.error(f"MySQL error connecting to RDS: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Error connecting to RDS: {e}")
-        return None
-
-def create_hotel_prices_table():
-    """Create hotel_prices table if it doesn't exist"""
-    try:
-        connection = get_rds_connection()
-        if not connection:
-            return False
-
-        with connection.cursor() as cursor:
-            create_table_query = """
-            CREATE TABLE IF NOT EXISTS hotel_prices (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                country VARCHAR(100),
-                hotel_name VARCHAR(500),
-                address TEXT,
-                rating VARCHAR(50),
-                raw_price VARCHAR(100),
-                cleaned_price DECIMAL(10,2),
-                checkin_date VARCHAR(50),
-                checkout_date VARCHAR(50),
-                nights VARCHAR(50),
-                scraped_at TIMESTAMP,
-                url TEXT,
-                ip_address VARCHAR(50),
-                screenshot_path VARCHAR(500),
-                screenshot_s3_url TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                INDEX idx_country (country),
-                INDEX idx_scraped_at (scraped_at)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            """
-            cursor.execute(create_table_query)
-            connection.commit()
-            logger.info("Hotel prices table created or already exists")
-
-        connection.close()
         return True
+
     except Exception as e:
-        logger.error(f"Error creating hotel_prices table: {e}")
-        return False
-
-def insert_hotel_data_to_rds(hotel_data):
-    """Insert hotel data into RDS"""
-    try:
-        connection = get_rds_connection()
-        if not connection:
-            logger.error("Failed to get RDS connection for insert")
-            return False
-
-        with connection.cursor() as cursor:
-            insert_query = """
-            INSERT INTO hotel_prices
-            (country, hotel_name, address, rating, raw_price, cleaned_price,
-             checkin_date, checkout_date, nights, scraped_at, url, ip_address,
-             screenshot_path, screenshot_s3_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-
-            values = (
-                hotel_data.get('country'),
-                hotel_data.get('hotel_name'),
-                hotel_data.get('address'),
-                hotel_data.get('rating'),
-                hotel_data.get('raw_price'),
-                hotel_data.get('cleaned_price'),
-                hotel_data.get('checkin_date'),
-                hotel_data.get('checkout_date'),
-                hotel_data.get('nights'),
-                hotel_data.get('scraped_at'),
-                hotel_data.get('url'),
-                hotel_data.get('ip_address'),
-                hotel_data.get('screenshot'),
-                hotel_data.get('screenshot_s3_url')
-            )
-
-            cursor.execute(insert_query, values)
-            connection.commit()
-            logger.info(f"Successfully inserted hotel data for {hotel_data.get('country')} into RDS")
-
-        connection.close()
-        return True
-    except Exception as e:
-        logger.error(f"Error inserting hotel data to RDS: {e}")
+        logger.error(f"Error inserting hotel data to DynamoDB: {e}")
         return False
 
 def upload_screenshot_to_s3(local_file_path, bucket_name="apartmentscreenshots"):
@@ -420,7 +310,7 @@ def setup_ec2_chrome_driver():
         driver_path = ChromeDriverManager().install()
         service = Service(driver_path)
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        logger.info("✅ Successfully using ChromeDriverManager")
+        logger.info("Successfully using ChromeDriverManager")
     except Exception as e1:
         logger.warning(f"ChromeDriverManager failed: {e1}")
         try:
@@ -429,7 +319,7 @@ def setup_ec2_chrome_driver():
             import chromedriver_autoinstaller
             chromedriver_autoinstaller.install()
             driver = webdriver.Chrome(options=chrome_options)
-            logger.info("✅ Successfully using chromedriver-autoinstaller")
+            logger.info("Successfully using chromedriver-autoinstaller")
         except Exception as e2:
             logger.warning(f"chromedriver-autoinstaller failed: {e2}")
             try:
@@ -437,7 +327,7 @@ def setup_ec2_chrome_driver():
                 logger.info("Attempting to use system Chrome...")
                 service = Service()  # Use default system path
                 driver = webdriver.Chrome(service=service, options=chrome_options)
-                logger.info("✅ Successfully using system Chrome")
+                logger.info("Successfully using system Chrome")
             except Exception as e3:
                 logger.error(f"All Chrome setup methods failed: {e1}, {e2}, {e3}")
                 raise Exception(f"Could not initialize Chrome WebDriver. Tried ChromeDriverManager, chromedriver-autoinstaller, and system Chrome. Last error: {e3}")
@@ -719,15 +609,8 @@ def main():
     # Hotel URL
     hotel_url = "https://www.booking.com/hotel/nz/goodview-serviced-apartment.html?aid=304142&label=gen173nr-10CAEoggI46AdIM1gEaD2IAQGYATO4AQfIAQzYAQPoAQH4AQGIAgGoAgG4As7u_scGwAIB0gIkYmRiODNhYmQtYTVlNy00OTljLThjZjgtNzg2OWJjMzU4ODBj2AIB4AIB&sid=161052f1d90c5a7f57b951c160f1fb7f&all_sr_blocks=218269713_273703546_0_0_0&checkin=2026-03-08&checkout=2026-03-22&dest_id=-1506909&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=2&highlighted_blocks=218269713_273703546_0_0_0&hpos=2&matching_block_id=218269713_273703546_0_0_0&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&sr_order=popularity&sr_pri_blocks=218269713_273703546_0_0_0__156889&srepoch=1761589637&srpvid=901281bb46be0113&type=total&ucfs=1&selected_currency=EUR"
 
-    print("🚀 EC2 Multi-Country Hotel Price Scraper")
+    print("EC2 Multi-Country Hotel Price Scraper")
     print("========================================")
-
-    # Initialize RDS table
-    logger.info("Initializing RDS database table...")
-    if create_hotel_prices_table():
-        logger.info("✅ RDS table ready")
-    else:
-        logger.warning("⚠️  Could not initialize RDS table - data will only be saved to CSV/JSON")
 
     # Get NordVPN countries
     countries = get_nordvpn_countries()
@@ -765,13 +648,13 @@ def main():
             if hotel_data and hotel_data.get('raw_price') != 'No price found':
                 all_hotel_data.append(hotel_data)
                 successful_countries.append(country)
-                logger.info(f"✅ Success for {country}")
+                logger.info(f"Success for {country}")
             else:
-                logger.warning(f"❌ No data for {country}")
+                logger.warning(f"No data for {country}")
                 failed_countries.append(country)
 
         except Exception as e:
-            logger.error(f"❌ Error for {country}: {e}")
+            logger.error(f"Error for {country}: {e}")
             failed_countries.append(country)
 
         # Longer pause between countries on EC2
@@ -788,15 +671,15 @@ def main():
             s3_url = upload_screenshot_to_s3(data['screenshot'])
             data['screenshot_s3_url'] = s3_url
 
-    # Insert data into RDS
-    logger.info("Inserting hotel data into RDS...")
-    rds_inserts_success = 0
-    rds_inserts_failed = 0
-    for data in all_hotel_data:
-        if insert_hotel_data_to_rds(data):
-            rds_inserts_success += 1
+    # Insert all hotel data to DynamoDB in one call
+    logger.info("Inserting hotel data into DynamoDB")
+    if all_hotel_data:
+        if insert_hotel_data_to_dynamodb(all_hotel_data):
+            logger.info(f"DynamoDB: Successfully inserted {len(all_hotel_data)} records")
         else:
-            rds_inserts_failed += 1
+            logger.error(f"DynamoDB: Failed to insert {len(all_hotel_data)} records")
+    else:
+        logger.info("DynamoDB: No data to insert")
 
     # Save results
     if all_hotel_data:
@@ -815,26 +698,21 @@ def main():
 
         # Print summary
         print("\n" + "="*60)
-        print("🏨 EC2 HOTEL PRICE SUMMARY")
+        print("EC2 HOTEL PRICE SUMMARY")
         print("="*60)
 
         for data in all_hotel_data:
-            print(f"\n🌍 {data['country']}: {data['raw_price']}")
+            print(f"\n{data['country']}: {data['raw_price']}")
 
-        print(f"\n✅ Successful: {len(successful_countries)}")
-        print(f"❌ Failed: {len(failed_countries)}")
+        print(f"\nSuccessful: {len(successful_countries)}")
+        print(f"Failed: {len(failed_countries)}")
 
         # Count S3 uploads
         s3_uploads = sum(1 for data in all_hotel_data if data.get('screenshot_s3_url'))
-        print(f"📸 Screenshots uploaded to S3: {s3_uploads}/{len(all_hotel_data)}")
+        print(f"Screenshots uploaded to S3: {s3_uploads}/{len(all_hotel_data)}")
 
         if s3_uploads > 0:
-            print(f"🗂️  S3 bucket: apartmentscreenshots/hotel-scraper/")
-
-        # RDS insert statistics
-        print(f"💾 RDS inserts: {rds_inserts_success} successful, {rds_inserts_failed} failed")
-        if rds_inserts_success > 0:
-            print(f"🔗 Database: {RDS_HOST}/{RDS_DB_NAME}")
+            print(f"S3 bucket: apartmentscreenshots/hotel-scraper/")
 
     else:
         logger.warning("No data collected")

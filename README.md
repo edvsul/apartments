@@ -18,16 +18,15 @@ This project is designed to run on AWS infrastructure with the following compone
 
 ### Architecture Diagram
 
-<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/c5a6ca09-629d-42cd-be5f-97800c843db4" />
+<img width="3713" height="2588" alt="image" src="https://github.com/user-attachments/assets/22402f92-b194-4676-b37a-c2533e39b134" />
 
 
 **Architecture Overview:**
 - **VPC (10.0.0.0/16)** with public and private subnets in Availability Zone A
 - **Public Subnet (10.0.1.0/24)** contains the EC2 instance with public IP
-- **Private Subnet (10.0.2.0/24)** contains the RDS MySQL database
 - **Amazon EC2** instance running the hotel scraper application
-- **Amazon IAM** role for EC2 instance with inline policies to connect to RDS and S3. SSM and CloudWatch included.
-- **Amazon RDS** MySQL database where records about hotel is saved
+- **Amazon IAM** role for EC2 instance with inline policies to connect to dynamodb and S3. SSM and CloudWatch included.
+- **Amazon Dynamodb table** Table where records about hotel is saved
 - **Amazon S3** bucket for screenshot storage
 - **Amazon CloudWatch** for collecting logs from EC2 instance under /var/log/hotel_scraper.log
 - **Sessions Manager** for secure access to EC2 instance
