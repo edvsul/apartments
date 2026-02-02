@@ -607,7 +607,7 @@ def main():
     logger.info("Starting EC2 multi-country hotel price scraper")
 
     # Hotel URL
-    hotel_url = "https://www.booking.com/hotel/nz/goodview-serviced-apartment.html?aid=304142&label=gen173nr-10CAEoggI46AdIM1gEaD2IAQGYATO4AQfIAQzYAQPoAQH4AQGIAgGoAgG4As7u_scGwAIB0gIkYmRiODNhYmQtYTVlNy00OTljLThjZjgtNzg2OWJjMzU4ODBj2AIB4AIB&sid=161052f1d90c5a7f57b951c160f1fb7f&all_sr_blocks=218269713_273703546_0_0_0&checkin=2026-03-08&checkout=2026-03-22&dest_id=-1506909&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=2&highlighted_blocks=218269713_273703546_0_0_0&hpos=2&matching_block_id=218269713_273703546_0_0_0&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&sr_order=popularity&sr_pri_blocks=218269713_273703546_0_0_0__156889&srepoch=1761589637&srpvid=901281bb46be0113&type=total&ucfs=1&selected_currency=EUR"
+    hotel_url = "https://www.booking.com/hotel/eg/golden-palace-suites.en-gb.html?aid=898224&app_hotel_id=9507435&checkin=2026-02-17&checkout=2026-02-24&from_sn=ios&group_adults=2&group_children=0&label=hotel_details-LflnMU%401769982911&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA%2C&chal_t=1770043814137&force_referer=&selected_currency=EUR"
 
     print("EC2 Multi-Country Hotel Price Scraper")
     print("========================================")
